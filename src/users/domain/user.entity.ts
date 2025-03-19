@@ -1,9 +1,13 @@
-export class User {
+import { UserRole } from './user-role.enum';
+
+export abstract class User {
+  protected abstract readonly role: UserRole;
+
   constructor(
-    private readonly id: string,
-    private readonly username: string,
-    private readonly password: string,
-    private readonly age: number,
+    protected readonly id: string,
+    protected readonly username: string,
+    protected readonly password: string,
+    protected readonly age: number,
   ) {}
 
   getId(): string {
@@ -20,5 +24,9 @@ export class User {
 
   getAge(): number {
     return this.age;
+  }
+
+  getRole(): UserRole {
+    return this.role;
   }
 }

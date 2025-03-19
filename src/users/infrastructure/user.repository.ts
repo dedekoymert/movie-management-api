@@ -1,20 +1,45 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ObjectId } from 'mongodb';
 
 import { User } from '../domain/user.entity';
 import { UserRepository } from '../domain/user.repository.interface';
-import { UserDocument } from './user.schema';
+import { IUser } from './schemas/user.schema';
+import { Manager } from '../domain/manager.entity';
+import { IManager } from './schemas/manager.schema';
+import { Customer } from '../domain/customer.entity';
+import { ICustomer } from './schemas/customer.schema';
+import { UserFactory } from './user.factory';
 
 @Injectable()
 export class UserRepositoryImpl implements UserRepository {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel('Users')
+    private userModel: Model<IUser>,
+    @InjectModel('manager')
+    private managerModel: Model<IManager>,
+    @InjectModel('customer')
+    private customerModel: Model<ICustomer>,
+  ) {}
 
-  async create(user: User): Promise<User> {
-    const userDoc = this.mapToDocument(user);
-    await userDoc.save();
-    return user;
+  async createUserManager(userManager: Manager): Promise<User> {
+    const user = new this.managerModel({
+      username: userManager.getUsername(),
+      password: userManager.getPassword(),
+      age: userManager.getAge(),
+    });
+    await user.save();
+    return UserFactory.createUserEntity(user);
+  }
+
+  async createUserCustomer(userCustomer: Customer): Promise<User> {
+    const user = new this.customerModel({
+      username: userCustomer.getUsername(),
+      password: userCustomer.getPassword(),
+      age: userCustomer.getAge(),
+    });
+    await user.save();
+    return UserFactory.createUserEntity(user);
   }
 
   async findOneByUsername(username: string): Promise<User | null> {
@@ -23,20 +48,6 @@ export class UserRepositoryImpl implements UserRepository {
         username,
       })
       .exec();
-    return userDoc ? this.mapToEntity(userDoc) : null;
-  }
-
-  private mapToEntity(userDoc: UserDocument): User {
-    const id = userDoc._id.toString();
-    return new User(id, userDoc.username, userDoc.password, userDoc.age);
-  }
-
-  private mapToDocument(user: User): UserDocument {
-    return new this.userModel({
-      _id: new ObjectId(user.getId()),
-      username: user.getUsername(),
-      password: user.getPassword(),
-      age: user.getAge(),
-    });
+    return userDoc ? UserFactory.createUserEntity(userDoc) : null;
   }
 }

@@ -1,7 +1,9 @@
+import { Customer } from './customer.entity';
+import { Manager } from './manager.entity';
 import { User } from './user.entity';
 
 export interface UserRepository {
-  // login(user: User): Promise<string>;
-  create(user: User): Promise<User>;
+  createUserManager(userManager: Manager): Promise<User>;
+  createUserCustomer(userCustomer: Customer): Promise<User>;
   findOneByUsername(username: string): Promise<User | null>;
 }

@@ -14,8 +14,14 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.CREATED)
-  @Post('register')
-  register(@Body() userRegisterDto: UserRegisterDto) {
-    return this.authService.register(userRegisterDto);
+  @Post('register/manager')
+  registerManager(@Body() userRegisterDto: UserRegisterDto) {
+    return this.authService.registerManager(userRegisterDto);
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @Post('register/customer')
+  registerCustomer(@Body() userRegisterDto: UserRegisterDto) {
+    return this.authService.registerCustomer(userRegisterDto);
   }
 }

@@ -3,12 +3,29 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { UsersController } from './interfaces/users.controller';
 import { UsersService } from './application/users.service';
-import { User, UserSchema } from './infrastructure/user.schema';
+import { UserSchema } from './infrastructure/schemas/user.schema';
 import { UserRepositoryImpl } from './infrastructure/user.repository';
+import { CustomerSchema } from './infrastructure/schemas/customer.schema';
+import { ManagerSchema } from './infrastructure/schemas/manager.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      {
+        name: 'Users',
+        schema: UserSchema,
+        discriminators: [
+          {
+            name: 'manager',
+            schema: ManagerSchema,
+          },
+          {
+            name: 'customer',
+            schema: CustomerSchema,
+          },
+        ],
+      },
+    ]),
   ],
   controllers: [UsersController],
   providers: [
