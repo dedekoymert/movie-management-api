@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 import { User } from '../domain/user.entity';
-import { UserRepository } from '../domain/user.repository.interface';
+import { UsersRepository } from '../domain/users.repository.interface';
 import { IUser } from './schemas/user.schema';
 import { Manager } from '../domain/manager.entity';
 import { IManager } from './schemas/manager.schema';
@@ -12,7 +12,7 @@ import { ICustomer } from './schemas/customer.schema';
 import { UserFactory } from './user.factory';
 
 @Injectable()
-export class UserRepositoryImpl implements UserRepository {
+export class UsersRepositoryImpl implements UsersRepository {
   constructor(
     @InjectModel('Users')
     private userModel: Model<IUser>,

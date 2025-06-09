@@ -4,7 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersController } from './interfaces/users.controller';
 import { UsersService } from './application/users.service';
 import { UserSchema } from './infrastructure/schemas/user.schema';
-import { UserRepositoryImpl } from './infrastructure/user.repository';
+import { UsersRepositoryImpl } from './infrastructure/users.repository';
 import { CustomerSchema } from './infrastructure/schemas/customer.schema';
 import { ManagerSchema } from './infrastructure/schemas/manager.schema';
 
@@ -31,10 +31,10 @@ import { ManagerSchema } from './infrastructure/schemas/manager.schema';
   providers: [
     UsersService,
     {
-      provide: 'UserRepository',
-      useClass: UserRepositoryImpl,
+      provide: 'UsersRepository',
+      useClass: UsersRepositoryImpl,
     },
   ],
-  exports: ['UserRepository'],
+  exports: ['UsersRepository'],
 })
 export class UsersModule {}

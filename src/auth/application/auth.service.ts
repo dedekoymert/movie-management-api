@@ -8,10 +8,10 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
 
-import { UserRepository } from 'src/users/domain/user.repository.interface';
-import { UserLoginDto } from './dtos/user-login.dto';
+import { UsersRepository } from 'src/users/domain/users.repository.interface';
+import { LoginUserDto } from './dtos/login-user.dto';
 import { ConfigService } from '@nestjs/config';
-import { UserRegisterDto } from './dtos/user-register.dto';
+import { RegisterUserDto } from './dtos/register-user.dto';
 import { Manager } from 'src/users/domain/manager.entity';
 import { UserDto } from 'src/users/application/dtos/user.dto';
 import { Customer } from 'src/users/domain/customer.entity';
@@ -19,19 +19,20 @@ import { Customer } from 'src/users/domain/customer.entity';
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject('UserRepository') private readonly userRepository: UserRepository,
+    @Inject('UsersRepository')
+    private readonly usersRepository: UsersRepository,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
 
-  async login(userLoginDto: UserLoginDto): Promise<{ access_token: string }> {
-    const user = await this.userRepository.findOneByUsername(
-      userLoginDto.username,
+  async login(loginUserDto: LoginUserDto): Promise<{ access_token: string }> {
+    const user = await this.usersRepository.findOneByUsername(
+      loginUserDto.username,
     );
 
     if (
       !user ||
-      !(await bcrypt.compare(userLoginDto.password, user.getPassword()))
+      !(await bcrypt.compare(loginUserDto.password, user.getPassword()))
     ) {
       throw new UnauthorizedException();
     }
@@ -48,47 +49,45 @@ export class AuthService {
     };
   }
 
-  async registerManager(userRegisterDto: UserRegisterDto): Promise<UserDto> {
-    const user = await this.userRepository.findOneByUsername(
-      userRegisterDto.username,
+  async registerManager(registerUserDto: RegisterUserDto): Promise<UserDto> {
+    const user = await this.usersRepository.findOneByUsername(
+      registerUserDto.username,
     );
 
     if (user) {
       throw new ConflictException('Username is already taken');
     }
 
-    const hash = await bcrypt.hash(userRegisterDto.password, 10);
+    const hash = await bcrypt.hash(registerUserDto.password, 10);
     const manager = new Manager(
       new ObjectId().toString(),
-      userRegisterDto.username,
+      registerUserDto.username,
       hash,
-      userRegisterDto.age,
+      registerUserDto.age,
     );
 
-    const createdUser = await this.userRepository.createUserManager(manager);
-    return {
-      id: createdUser.getId(),
-      username: createdUser.getUsername(),
-      age: createdUser.getAge(),
-      role: createdUser.getRole(),
-    };
+    const createdUser = await this.usersRepository.createUserManager(manager);
+    return UserDto.mapTo(createdUser);
   }
 
-  async registerCustomer(userRegisterDto: UserRegisterDto): Promise<UserDto> {
-    const hash = await bcrypt.hash(userRegisterDto.password, 10);
-    const user = new Customer(
-      new ObjectId().toString(),
-      userRegisterDto.username,
-      hash,
-      userRegisterDto.age,
+  async registerCustomer(registerUserDto: RegisterUserDto): Promise<UserDto> {
+    const user = await this.usersRepository.findOneByUsername(
+      registerUserDto.username,
     );
 
-    const createdUser = await this.userRepository.createUserCustomer(user);
-    return {
-      id: createdUser.getId(),
-      username: createdUser.getUsername(),
-      age: createdUser.getAge(),
-      role: createdUser.getRole(),
-    };
+    if (user) {
+      throw new ConflictException('Username is already taken');
+    }
+
+    const hash = await bcrypt.hash(registerUserDto.password, 10);
+    const customer = new Customer(
+      new ObjectId().toString(),
+      registerUserDto.username,
+      hash,
+      registerUserDto.age,
+    );
+
+    const createdUser = await this.usersRepository.createUserCustomer(customer);
+    return UserDto.mapTo(createdUser);
   }
 }
